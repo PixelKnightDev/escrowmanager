@@ -12,10 +12,10 @@ const createEscrowPaymentIntent = async ({ projectId }) => {
     });
 
     if (!project) {
-      throw new Error("Project not found");
+      throw new Error("Project not found in database.");
     }
 
-    // 2. Add your 2% platform fee so it perfectly matches the Android UI!
+    // 2. Add your 2% platform fee so it perfectly matches the Android UI
     const totalCharge = project.budget * 1.02;
 
     // 3. Convert to paise (smallest currency unit for INR)
@@ -34,7 +34,8 @@ const createEscrowPaymentIntent = async ({ projectId }) => {
     };
   } catch (error) {
     console.error("Stripe API Error:", error);
-    throw new Error("Failed to generate secure Stripe payment intent.");
+    // THE FIX: Send the REAL error message back to Android so we can see exactly what's failing!
+    throw new Error(error.message); 
   }
 };
 
