@@ -58,6 +58,22 @@ const confirmFunding = async (req, res) => {
     }
 };
 
+const confirmEscrow = async (req, res) => {
+  try {
+    const { projectId, paymentIntentId } = req.body;
+    
+    // Call the newly upgraded service function
+    const result = await stripeService.confirmEscrowFunded({ projectId, paymentIntentId });
+    
+    // Send a 200 OK only if it actually saved
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("Confirm Escrow Crash:", error);
+    // Send a 500 status code so Android knows it failed!
+    res.status(500).json({ error: error.message });
+  }
+};
+
 const getEscrowByProjectId = async (req, res) => {
     const { projectId } = req.params;
     const escrow = await prisma.escrowAccount.findUnique({
@@ -75,5 +91,6 @@ const getEscrowByProjectId = async (req, res) => {
 export default {
   fundEscrow,
   confirmFunding,
+  confirmEscrow,
   getEscrowByProjectId,
 };

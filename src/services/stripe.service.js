@@ -6,7 +6,6 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 const createEscrowPaymentIntent = async ({ projectId }) => {
   try {
-    // 1. SECURE: Fetch the project from the database to get the real budget
     const project = await prisma.project.findUnique({
       where: { id: projectId }
     });
@@ -15,13 +14,9 @@ const createEscrowPaymentIntent = async ({ projectId }) => {
       throw new Error("Project not found in database.");
     }
 
-    // 2. Add your 2% platform fee so it perfectly matches the Android UI
     const totalCharge = project.budget * 1.02;
-
-    // 3. Convert to paise (smallest currency unit for INR)
     const amountInSmallestUnit = Math.round(totalCharge * 100);
 
-    // 4. Call the REAL Stripe API
     const paymentIntent = await stripe.paymentIntents.create({
       amount: amountInSmallestUnit,
       currency: 'inr', 
@@ -34,7 +29,6 @@ const createEscrowPaymentIntent = async ({ projectId }) => {
     };
   } catch (error) {
     console.error("Stripe API Error:", error);
-    // THE FIX: Send the REAL error message back to Android so we can see exactly what's failing!
     throw new Error(error.message); 
   }
 };
@@ -45,7 +39,6 @@ const confirmEscrowFunded = async ({ projectId, paymentIntentId }) => {
       const project = await tx.project.findUnique({ where: { id: projectId } });
       if (!project) throw new Error("Project not found");
 
-      // THE FIX: Use UPSERT so it perfectly creates the escrow row if it's missing!
       const escrow = await tx.escrowAccount.upsert({
         where: { projectId },
         update: {
@@ -70,7 +63,6 @@ const confirmEscrowFunded = async ({ projectId, paymentIntentId }) => {
         },
       });
 
-      // Update the main project status so the Android UI updates!
       await tx.project.update({
         where: { id: projectId },
         data: { status: 'FUNDED' },
@@ -146,5 +138,5 @@ export default {
   confirmEscrowFunded,
   releaseMilestonePayout,
   releasePartialPayout,
-  triggerRefund,
+  triggerRefund
 };
