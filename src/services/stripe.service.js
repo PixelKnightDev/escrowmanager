@@ -36,20 +36,22 @@ const confirmEscrowFunded = async ({ projectId, paymentIntentId }) => {
       const project = await tx.project.findUnique({ where: { id: projectId } });
       if (!project) throw new Error("Project not found");
 
+      const budgetFloat = parseFloat(project.budget); // <-- Force it into a Float
+
       const escrow = await tx.escrowAccount.upsert({
         where: { projectId },
         update: {
           status: 'FUNDED',
           stripePaymentIntentId: paymentIntentId,
-          heldAmount: project.budget,
-          totalAmount: project.budget // <-- ADDED THIS
+          heldAmount: budgetFloat,
+          totalAmount: budgetFloat // <-- Now it is guaranteed to be a Float
         },
         create: {
           projectId,
           status: 'FUNDED',
           stripePaymentIntentId: paymentIntentId,
-          heldAmount: project.budget,
-          totalAmount: project.budget // <-- THE FIX THAT SATISFIES PRISMA
+          heldAmount: budgetFloat,
+          totalAmount: budgetFloat // <-- Now it is guaranteed to be a Float
         }
       });
 
