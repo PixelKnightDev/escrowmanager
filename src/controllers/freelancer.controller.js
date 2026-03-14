@@ -10,7 +10,7 @@ const getAssignedMilestones = async (req, res) => {
     where: { freelancerId: req.user.userId },
     include: {
       project: {
-        select: { title: true, id: true },
+        select: { title: true, id: true, status: true },
       },
       submissions: {
         orderBy: { createdAt: 'desc' },
