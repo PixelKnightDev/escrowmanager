@@ -68,7 +68,7 @@ model Milestone {
   transactions    Transaction[]
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
-  submissionType  SubmissionType
+  submissionType  SubmissionType @default(CODE)
 }
 
 enum MilestoneStatus {
